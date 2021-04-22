@@ -30,6 +30,10 @@ const useStyles = makeStyles((theme) => ({
         position: "relative",
         height: "80%"
     },
+    doneMessage: {
+        height: "100%",
+        textAlign: "center"
+    },
     actions: {
         height: "20%"
     },
@@ -88,62 +92,102 @@ export function CardUI() {
 
     const [people, setPeople] = useState(peopleData);
     const [liked, setLiked] = useState([]);
-    const [skiped, setSkiped] = useState([]);
+    const [skipped, setSkipped] = useState([]);
 
     const handleSkip = () => {
         setPeople(people.slice(1));
-        setSkiped(people.slice(0, 1));
+        setSkipped([...skipped, ...people.slice(0, 1)]);
     }
 
     const handleLike = () => {
         setPeople(people.slice(1));
-        setLiked(people.slice(0, 1));
+        setLiked([...liked, ...people.slice(0, 1)]);
     };
 
     return (
         <Box className={classes.wrapper}>
 
             <Box className={classes.cards}>
-                {people.map(person => (
-                    <Card className={classes.card}>
-                        <CardMedia
-                            image={person.img}
-                            title={person.name}
-                            className={classes.image}
-                        />
-                        <CardContent className={classes.cardContent}>
-                            <Typography variant="h6" component="span" >
-                                {person.name}
+                {people.length === 0 ? (
+                    <Grid
+                        container
+                        justify="center"
+                        alignItems="center"
+                        className={classes.doneMessage}
+                    >
+                        <Grid item>
+                            <Typography>仕分けが完了しました</Typography>
+                            <Typography variant="body2" color="textSecondary">
+                                {[
+                                    `スキップ ${skipped.length}`,
+                                    `いいね ${liked.length}`,
+                                ].join("　")}
                             </Typography>
-                            <Typography color="textSecondary" component="span">
-                                {person.age}
-                            </Typography>
-                        </CardContent>
-                    </Card>
+                        </Grid>
+                    </Grid>
+                ) : (
+                    people.map(person => (
+                        <PersonCard person={person} key={person.id} />
+                    )
                 ))}
             </Box>
 
-            <Box className={classes.actions}>
-                <CardUIActions />
+            <Box mt={1} className={classes.actions}>
+                <CardUIActions 
+                    onSkip={handleSkip}
+                    onLike={handleLike}
+                />
             </Box>
         </Box>
     );
 }
 
-function CardUIActions() {
+function PersonCard({person}) {
+    const classes = useStyles();
+
+    return (
+        <Card className={classes.card}>
+            <CardMedia
+                image={person.img}
+                title={person.name}
+                className={classes.image}
+            />
+            <CardContent className={classes.cardContent}>
+                <Typography variant="h6" component="span" >
+                    {person.name}
+                </Typography>
+                <Typography color="textSecondary" component="span">
+                    {person.age}
+                </Typography>
+            </CardContent>
+        </Card>
+    );
+}
+
+function CardUIActions({onSkip, onLike}) {
     const classes = useStyles();
 
     const icons = [
-        <SkipIcon fontSize="large" color="error" />,
-        <LikeIcon fontSize="large" color="primary" />
+        {
+            component: <SkipIcon fontSize="large" color="error" />,
+            onClick: onSkip
+        },
+        {
+            component: <LikeIcon fontSize="large" color="primary" />,
+            onClick: onLike
+        }
     ];
 
     return (
         <Grid container justify="center">
             <Grid item className={classes.actionButtons}>
-                {icons.map(icon => (
-                    <IconButton className={classes.actionButton}>
-                        {icon}
+                {icons.map((icon, i) => (
+                    <IconButton
+                        className={classes.actionButton}
+                        onClick={icon.onClick}  
+                        key={i}
+                    >
+                        {icon.component}
                     </IconButton>
                 ))}
             </Grid>
