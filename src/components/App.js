@@ -3,7 +3,6 @@ import { makeStyles } from "@material-ui/core/styles"
 import {
     Container,
     CssBaseline,
-    Grid,
 } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
@@ -12,7 +11,7 @@ const useStyles = makeStyles((theme) => ({
     },
     grid: {
         height: "100%",
-    }
+    },
 }));
 
 function App() {
@@ -22,11 +21,7 @@ function App() {
         <>
             <CssBaseline />
             <Container maxWidth="sm" className={classes.container}>
-                <Grid container alignItems="center" className={classes.grid}>
-                    <Grid item xs>
-                        <CardUI />
-                    </Grid>
-                </Grid>
+                <CardUI />
             </Container>
         </>
     );
