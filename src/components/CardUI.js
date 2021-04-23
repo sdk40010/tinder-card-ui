@@ -16,7 +16,10 @@ import {
     SentimentDissatisfied as SkipIcon, 
 } from "@material-ui/icons";
 
+// カードラッパー用
 const CARD_MAX_WIDTH = "500px";
+const CARD_CONTENT_HEIGHT = "72px"
+const CARD_TOP_DIFF = "10px";
 
 // カードアニメーション用
 const OFF_SCREEN = "400px";
@@ -28,16 +31,17 @@ const useStyles = makeStyles((theme) => ({
     },
     cards: {
         position: "relative",
-        height: "80%",
         maxWidth: CARD_MAX_WIDTH,
-        margin: "auto"
+        margin: "0 auto",
+        "&::before": { // カードラッパーの高さ調整用
+            content: '""',
+            display: "block",
+            paddingTop: `calc(100% + ${CARD_CONTENT_HEIGHT} + calc(${CARD_TOP_DIFF} * 2))`,
+        },
     },
     doneMessage: {
-        height: "100%",
+        minHeight: "100%",
         textAlign: "center"
-    },
-    controller: {
-        height: "20%"
     },
 
     // 人物カード
@@ -45,24 +49,26 @@ const useStyles = makeStyles((theme) => ({
         width: "100%",
         maxWidth: "500px",
         position: "absolute",
+        transition: "all .1s linear",
+        top: 0,
         "&:nth-child(1)": {
             zIndex: 5,
         },
         "&:nth-child(2)": {
             zIndex: 4,
-            top: "10px",
+            top: CARD_TOP_DIFF,
             transform: "scale(0.98)",
         },
         "&:nth-child(3)": {
             zIndex: 3,
-            top: "20px",
+            top: `calc(${CARD_TOP_DIFF} * 2)`,
             transform: "scale(0.96)",
         },
         "&:nth-child(n+4)": {
             zIndex: 2,
             transform: "scale(0.7)",
         },
-        "&::before": {
+        "&::before": { // アニメーションでラベルを付与するために必要
             position: "absolute",
             top: 0,
             left: 0,
@@ -70,7 +76,7 @@ const useStyles = makeStyles((theme) => ({
             height: "100%",
             display: "block",
             content: '""',
-        }
+          }
     },
     image: {
         paddingTop: "100%",
@@ -106,7 +112,7 @@ const useStyles = makeStyles((theme) => ({
         animationFillMode: "both",
         "&:before": {
             transform: "rotateZ(-35deg)",
-            background: "url(https://i.imgur.com/Zkwj970.png) no-repeat center 10px"
+            background: "url(https://i.imgur.com/Zkwj970.png) no-repeat center 10px",
         }
     },
     "@keyframes skip": {
@@ -173,53 +179,55 @@ export function CardUI() {
         setLikeAnimation(true);
     };
 
+    const empty = people.length === 0;
+
     return (
         <Box className={classes.wrapper}>
-
-            <Box className={classes.cards}>
-                {people.length === 0 ? (
-                    <Grid
-                        container
-                        justify="center"
-                        alignItems="center"
-                        className={classes.doneMessage}
-                    >
-                        <Grid item>
-                            <Typography>仕分けが完了しました</Typography>
-                            <Typography variant="body2" color="textSecondary">
-                                {[
-                                    `スキップ ${skipped.length}`,
-                                    `いいね ${liked.length}`,
-                                ].join("　")}
-                            </Typography>
-                        </Grid>
+            {empty ? (
+                <Grid
+                    container
+                    justify="center"
+                    alignItems="center"
+                    className={classes.doneMessage}
+                >
+                    <Grid item>
+                        <Typography>仕分けが完了しました</Typography>
+                        <Typography variant="body2" color="textSecondary">
+                            {[
+                                `スキップ ${skipped.length}`,
+                                `いいね ${liked.length}`,
+                            ].join("　")}
+                        </Typography>
                     </Grid>
-                ) : (
-                    people.map((person, i) => {
-                        const props = { person, key: person.id };
-                        if (i === 0) { // 先頭のカードにはアニメーション用のCSSとイベントハンドラーを追加する
-                            props.className = clsx({
-                                [classes.skipAnimation]: skipAnimation,
-                                [classes.likeAnimation]: likeAnimation,
-                            });
-                            props.onSkipAnimationEnd = handleSkipAnimationEnd;
-                            props.onLikeAnimationEnd = handleLikeAnimationEnd;
-                        }
+                </Grid>
+            ) : (
+                <>
+                    <Box className={classes.cards}>
+                        {people.map((person, i) => {
+                            const props = { person, key: person.id };
+                            if (i === 0) { // 先頭のカードにはアニメーション用のCSSとイベントハンドラーを追加する
+                                props.className = clsx({
+                                    [classes.skipAnimation]: skipAnimation,
+                                    [classes.likeAnimation]: likeAnimation,
+                                });
+                                props.onSkipAnimationEnd = handleSkipAnimationEnd;
+                                props.onLikeAnimationEnd = handleLikeAnimationEnd;
+                            }
+                        
+                            return (
+                                <PersonCard {...props} />
+                            );
+                        })}
+                    </Box>
 
-                        return (
-                            <PersonCard {...props} />
-                        );
-                    })
-                )}
-            </Box>
-
-            <Box mt={1} className={classes.controller}>
-                <CardUIController 
-                    onSkip={handleSkip}
-                    onLike={handleLike}
-                />
-            </Box>
-
+                    <Box mt={1}>
+                        <CardUIController 
+                            onSkip={handleSkip}
+                            onLike={handleLike}
+                        />
+                    </Box>
+                </>
+            )}
         </Box>
     );
 }
