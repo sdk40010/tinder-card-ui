@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { people as peopleData } from "./people";
 import { makeStyles } from "@material-ui/core/styles"
+import clsx from "clsx";
 import {
     Box,
     Grid,
@@ -15,48 +16,51 @@ import {
     SentimentDissatisfied as SkipIcon, 
 } from "@material-ui/icons";
 
+const CARD_MAX_WIDTH = "500px";
 
-const centering = {
-    top: "50% ",
-    left: "50% ",
-    transform: "translateY(-50%) translateX(-50%) ",
-};
+// カードアニメーション用
+const OFF_SCREEN = "400px";
 
 const useStyles = makeStyles((theme) => ({
+    // ラッパー
     wrapper: {
         height: "100%"
     },
     cards: {
         position: "relative",
-        height: "80%"
+        height: "80%",
+        maxWidth: CARD_MAX_WIDTH,
+        margin: "auto"
     },
     doneMessage: {
         height: "100%",
         textAlign: "center"
     },
-    actions: {
+    controller: {
         height: "20%"
     },
+
+    // 人物カード
     card: {
         width: "100%",
+        maxWidth: "500px",
         position: "absolute",
-        ...centering,
         "&:nth-child(1)": {
             zIndex: 5,
         },
         "&:nth-child(2)": {
             zIndex: 4,
-            top: `calc(${centering.top + "+ 10px"})`,
-            transform: centering.transform + "scale(0.98)",
+            top: "10px",
+            transform: "scale(0.98)",
         },
         "&:nth-child(3)": {
             zIndex: 3,
-            top: `calc(${centering.top + "+ 20px"})`,
-            transform: centering.transform + "scale(0.96)",
+            top: "20px",
+            transform: "scale(0.96)",
         },
         "&:nth-child(n+4)": {
             zIndex: 2,
-            transform: centering.transform + "scale(0.7)",
+            transform: "scale(0.7)",
         },
         "&::before": {
             position: "absolute",
@@ -76,32 +80,97 @@ const useStyles = makeStyles((theme) => ({
             marginRight: theme.spacing(1)
         }
     },
-    actionButtons: {
+
+    // 仕分けボタン
+    buttons: {
         "& > *": {
             marginLeft: theme.spacing(3),
             marginRight: theme.spacing(3),
         }
     },
-    actionButton: {
+    button: {
         border: "1px solid " + theme.palette.grey[400]
-    }
+    },
+
+    // アニメーション
+    skipAnimation: {
+        animation: "$skip .4s linear",
+        animationFillMode: "both",
+        "&:before": {
+            transform: "rotateZ(-35deg)",
+            background: "url(https://i.imgur.com/XqQZ4KR.png) no-repeat center 10px"
+        }
+    },
+    likeAnimation: {
+        animation: "$like .4s linear",
+        animationFillMode: "both",
+        "&:before": {
+            transform: "rotateZ(-35deg)",
+            background: "url(https://i.imgur.com/Zkwj970.png) no-repeat center 10px"
+        }
+    },
+    "@keyframes skip": {
+        "0%": {
+            transform: "scale(1) rotateZ(360deg)",
+            right: 0,
+          },
+          "30%": { 
+            transform: "scale(1.05) rotateZ(360deg)",
+            right: 0,
+          },
+          "100%": {
+            transform: "rotateZ(315deg)",
+            right: OFF_SCREEN,
+          }
+    },
+    "@keyframes like": {
+        "0%": {
+            transform: "scale(1) rotateZ(0deg)",
+            left: 0,
+          },
+          "30%": { 
+            transform: "scale(1.05) rotateZ(0deg)",
+            left: 0,
+          },
+          "100%": {
+            transform: "rotateZ(45deg)",
+            left: OFF_SCREEN,
+          }
+    },
 }));
 
 export function CardUI() {
     const classes = useStyles();
 
+    // 仕分け用の配列
     const [people, setPeople] = useState(peopleData);
     const [liked, setLiked] = useState([]);
     const [skipped, setSkipped] = useState([]);
 
-    const handleSkip = () => {
+    // アニメーション用フラグ
+    const [skipAnimation, setSkipAnimation] = useState(false);
+    const [likeAnimation, setLikeAnimation] = useState(false);
+
+    // 先頭のカードに渡すイベントハンドラー
+    const handleSkipAnimationEnd = useCallback(() => {
         setPeople(people.slice(1));
         setSkipped([...skipped, ...people.slice(0, 1)]);
-    }
+        setSkipAnimation(false);
+    }, [people, skipped]);
 
-    const handleLike = () => {
+    const handleLikeAnimationEnd = useCallback(() => {
         setPeople(people.slice(1));
         setLiked([...liked, ...people.slice(0, 1)]);
+        setLikeAnimation(false);
+    }, [people, liked]);
+
+    // 仕分け用コントローラーに渡すイベントハンドラー
+    const handleSkip = useCallback(() => {
+        setSkipAnimation(true);
+    }, []);
+
+    const handleLike = () => {
+        setLikeAnimation(true);
     };
 
     return (
@@ -126,27 +195,60 @@ export function CardUI() {
                         </Grid>
                     </Grid>
                 ) : (
-                    people.map(person => (
-                        <PersonCard person={person} key={person.id} />
-                    )
-                ))}
+                    people.map((person, i) => {
+                        const props = { person, key: person.id };
+                        if (i === 0) { // 先頭のカードにはアニメーション用のCSSとイベントハンドラーを追加する
+                            props.className = clsx({
+                                [classes.skipAnimation]: skipAnimation,
+                                [classes.likeAnimation]: likeAnimation,
+                            });
+                            props.onSkipAnimationEnd = handleSkipAnimationEnd;
+                            props.onLikeAnimationEnd = handleLikeAnimationEnd;
+                        }
+
+                        return (
+                            <PersonCard {...props} />
+                        );
+                    })
+                )}
             </Box>
 
-            <Box mt={1} className={classes.actions}>
-                <CardUIActions 
+            <Box mt={1} className={classes.controller}>
+                <CardUIController 
                     onSkip={handleSkip}
                     onLike={handleLike}
                 />
             </Box>
+
         </Box>
     );
 }
 
-function PersonCard({person}) {
+/**
+ * 人物カード
+ */
+function PersonCard(props) {
+    const {
+        person,
+        className,
+        onSkipAnimationEnd = () => {},
+        onLikeAnimationEnd = () => {},
+    } = props;
+
     const classes = useStyles();
 
+    const handleAnimationEnd = (event) => {
+        const animationName = event.animationName;
+
+        if (animationName.includes("skip")) {
+            onSkipAnimationEnd();
+        } else if (animationName.includes("like")) {
+            onLikeAnimationEnd();
+        }
+    }
+
     return (
-        <Card className={classes.card}>
+        <Card className={clsx(classes.card, className)} onAnimationEnd={handleAnimationEnd}>
             <CardMedia
                 image={person.img}
                 title={person.name}
@@ -164,7 +266,10 @@ function PersonCard({person}) {
     );
 }
 
-function CardUIActions({onSkip, onLike}) {
+/**
+ * 仕分け用コントローラー
+ */
+function CardUIController({onSkip, onLike}) {
     const classes = useStyles();
 
     const icons = [
@@ -180,10 +285,10 @@ function CardUIActions({onSkip, onLike}) {
 
     return (
         <Grid container justify="center">
-            <Grid item className={classes.actionButtons}>
+            <Grid item className={classes.buttons}>
                 {icons.map((icon, i) => (
                     <IconButton
-                        className={classes.actionButton}
+                        className={classes.button}
                         onClick={icon.onClick}  
                         key={i}
                     >
