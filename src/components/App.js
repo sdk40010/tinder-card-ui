@@ -1,7 +1,7 @@
 import {useEffect } from "react";
 import { NavBar } from "./NavBar";
 import { MainContainer } from "./MainContainer";
-import { CardUI } from "./CardUI";
+import { CardUI } from "./card-ui/CardUI";
 import { config } from "../config";
 import { usePersonAPI } from "../hooks/personAPI";
 import { CssBaseline　} from "@material-ui/core";

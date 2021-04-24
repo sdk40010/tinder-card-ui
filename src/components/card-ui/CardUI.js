@@ -1,25 +1,18 @@
 import { useState, useCallback } from "react";
-import { makeStyles } from "@material-ui/core/styles"
+import { PersonCard } from "./PersonCard";
+import { Controller } from "./Controller";
+import { makeStyles } from "@material-ui/core/styles";
 import clsx from "clsx";
 import {
     Box,
     Grid,
-    Card,
-    CardContent,
-    CardMedia,
     Typography,
-    IconButton,
 } from "@material-ui/core";
-import { 
-    SentimentSatisfiedAlt as LikeIcon,
-    SentimentDissatisfied as SkipIcon, 
-} from "@material-ui/icons";
-import { motion, useMotionValue, useTransform, useAnimation } from "framer-motion";
 
 // カードラッパー用
 const CARD_MAX_WIDTH = "500px";
 const CARD_CONTENT_HEIGHT = "72px"
-const CARD_TOP_DIFF = "10px";
+export const CARD_TOP_DIFF = "10px";
 
 // カードアニメーション用
 const OFF_SCREEN = "400px";
@@ -35,7 +28,6 @@ const likeLabel = {
         background: "url(https://i.imgur.com/Zkwj970.png) no-repeat center 10px",
     }
 };
-
 
 const useStyles = makeStyles((theme) => ({
     // ラッパー
@@ -55,63 +47,6 @@ const useStyles = makeStyles((theme) => ({
     doneMessage: {
         minHeight: "100%",
         textAlign: "center"
-    },
-
-    // 人物カード
-    card: {
-        width: "100%",
-        maxWidth: "500px",
-        position: "absolute",
-        transition: "all .2s linear",
-        top: 0,
-        "&:nth-child(1)": {
-            zIndex: 5,
-        },
-        "&:nth-child(2)": {
-            zIndex: 4,
-            top: CARD_TOP_DIFF,
-            transform: "scale(0.98)",
-        },
-        "&:nth-child(3)": {
-            zIndex: 3,
-            top: `calc(${CARD_TOP_DIFF} * 2)`,
-            transform: "scale(0.96)",
-        },
-        "&:nth-child(n+4)": {
-            zIndex: 2,
-            transform: "scale(0.7)",
-        },
-        "&::before": { // アニメーションでラベルを付与するために必要
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            display: "block",
-            content: '""',
-          }
-    },
-    image: {
-        paddingTop: "100%",
-    },
-    cardContent: {
-        "& > *:not(:last-child)": {
-            marginRight: theme.spacing(1)
-        }
-    },
-    swipableCard: {
-        overflow: "initial"
-    },
-
-    // 仕分けボタン
-    buttons: {
-        "& > *": {
-            marginLeft: theme.spacing(3),
-            marginRight: theme.spacing(3),
-        }
-    },
-    button: {
-        border: "1px solid " + theme.palette.grey[400]
     },
 
     // アニメーション
@@ -165,6 +100,8 @@ const useStyles = makeStyles((theme) => ({
 
 /**
  * Tinder風カードUI
+ * 
+ * @param {array} props.people 人物の配列
  */
 export function CardUI(props) {
     const classes = useStyles();
@@ -236,9 +173,9 @@ export function CardUI(props) {
         setSkipAnimation(true);
     }, []);
 
-    const handleLike = () => {
+    const handleLike = useCallback(() => {
         setLikeAnimation(true);
-    };
+    }, []);
 
     return (
         <Box className={classes.wrapper}>
@@ -292,7 +229,7 @@ export function CardUI(props) {
                     </Box>
 
                     <Box mt={1}>
-                        <CardUIController 
+                        <Controller 
                             onSkip={handleSkip}
                             onLike={handleLike}
                         />
@@ -300,142 +237,5 @@ export function CardUI(props) {
                 </>
             )}
         </Box>
-    );
-}
-
-/**
- * 人物カード
- */
-function PersonCard(props) {
-    const {
-        person,
-        className,
-        onSkipAnimationEnd = () => {},
-        onLikeAnimationEnd = () => {},
-        swipable = false,
-        onSwipeSkip = () => {},
-        onSwipeLike = () => {},
-        onSwipeSkipCanceled = () => {},
-        onSwipeLikeCanceled = () => {},
-    } = props;
-
-    const classes = useStyles();
-
-    const handleAnimationEnd = (event) => {
-        const animationName = event.animationName;
-
-        if (animationName.includes("skip")) {
-            onSkipAnimationEnd();
-        } else if (animationName.includes("like")) {
-            onLikeAnimationEnd();
-        }
-    }
-
-    // スワイプ量によって変化する値
-    const x = useMotionValue(0, );
-    const rotate = useTransform(x, [-200, 200], [-45, 45]);
-    const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
-
-    const controls = useAnimation();
-
-    // スワイプの設定
-    const motionProps = swipable
-        ? {
-            drag: "x",
-            dragConstraints: { left: -200, right: 200 },
-            animate: controls,
-            style: {
-                x,
-                rotate,
-                opacity,
-            },
-            onDrag: () => {
-                const motionX = x.get();
-                // 人物カードにラベルを付ける
-                if (motionX < 0) {
-                    onSwipeSkip();
-                } else {
-                    onSwipeLike();
-                }
-            },
-            onDragEnd: () => {
-                const THRESHOULD = 150; // 閾値
-                const motionX = x.get();
-
-                if (Math.abs(motionX) <= THRESHOULD) { // スワイプ量の絶対値が閾値以下のときは仕分けしない
-                    controls.start({ x: 0 });
-                    // 人物カードのラベルをはずす
-                    if (motionX < 0) {
-                        onSwipeSkipCanceled();
-                    } else {
-                        onSwipeLikeCanceled()
-                    }
-                } else if (motionX < -THRESHOULD) {
-                    onSkipAnimationEnd();
-                } else if (motionX > THRESHOULD) {
-                    onLikeAnimationEnd();
-                }
-            }
-            
-        }
-        : {};
-
-    return (
-        <motion.div
-            {...motionProps}
-            className={clsx(classes.card, className)}
-            onAnimationEnd={handleAnimationEnd}
-            
-        >
-            <Card >
-                <CardMedia
-                    image={person.picture.large}
-                    title={person.name.first}
-                    className={classes.image}
-                />
-                <CardContent className={classes.cardContent}>
-                    <Typography variant="h6" component="span" >
-                        {person.name.first}
-                    </Typography>
-                    <Typography color="textSecondary" component="span">
-                        {person.dob.age}
-                    </Typography>
-                </CardContent>
-            </Card>
-        </motion.div>
-    );
-}
-
-/**
- * 仕分け用コントローラー
- */
-function CardUIController({onSkip, onLike}) {
-    const classes = useStyles();
-
-    const icons = [
-        {
-            component: <SkipIcon fontSize="large" color="error" />,
-            onClick: onSkip
-        },
-        {
-            component: <LikeIcon fontSize="large" color="primary" />,
-            onClick: onLike
-        }
-    ];
-
-    return (
-        <Grid container justify="center">
-            <Grid item className={classes.buttons}>
-                {icons.map((icon, i) => (
-                    <IconButton
-                        className={classes.button}
-                        onClick={icon.onClick}  
-                        key={i}
-                    >
-                        {icon.component}
-                    </IconButton>
-                ))}
-            </Grid>
-        </Grid>
     );
 }
