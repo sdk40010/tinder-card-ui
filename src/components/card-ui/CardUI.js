@@ -228,7 +228,7 @@ export function CardUI(props) {
                         })}
                     </Box>
 
-                    <Box mt={1}>
+                    <Box mt={1} mb={1}>
                         <Controller 
                             onSkip={handleSkip}
                             onLike={handleLike}

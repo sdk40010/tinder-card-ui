@@ -66,7 +66,7 @@ async function apiCall(url, method) {
 }
 
 /**
- * HTTPステータスに応じてエラーを投げる
+ * HTTPステータスコードに応じてエラーを投げる
  * 
  * @param {Response} res リクエストのレスポンス
  */
