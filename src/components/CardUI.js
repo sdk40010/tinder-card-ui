@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import { people as peopleData } from "./people";
 import { makeStyles } from "@material-ui/core/styles"
 import clsx from "clsx";
 import {
@@ -164,11 +163,14 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export function CardUI() {
+/**
+ * Tinder風カードUI
+ */
+export function CardUI(props) {
     const classes = useStyles();
 
     // 仕分け用の配列
-    const [people, setPeople] = useState(peopleData);
+    const [people, setPeople] = useState(props.people);
     const [liked, setLiked] = useState([]);
     const [skipped, setSkipped] = useState([]);
 
@@ -181,22 +183,7 @@ export function CardUI() {
      const [likeLabel, setlikeLabel] = useState(false);
 
     // 先頭のカードに渡すイベントハンドラー
-    const handleSkipAnimationEnd = useCallback(() => {
-        setPeople(people.slice(1));
-        setSkipped([...skipped, ...people.slice(0, 1)]);
-
-        setSkipAnimation(false);
-        handleSwipeSkipCanceled();
-    }, [people, skipped, skipLabel]);
-
-    const handleLikeAnimationEnd = useCallback(() => {
-        setPeople(people.slice(1));
-        setLiked([...liked, ...people.slice(0, 1)]);
-
-        setLikeAnimation(false);
-        handleSwipeLikeCanceled();
-    }, [people, liked, likeLabel]);
-
+    // スワイプによる仕分け用
     const handleSwipeSkip = useCallback(() => {
         if (likeLabel) {
             setlikeLabel(false);
@@ -227,6 +214,23 @@ export function CardUI() {
         }
     }, [likeLabel]);
 
+    // 仕分け用（ボタンとスワイプの両方）
+    const handleSkipAnimationEnd = useCallback(() => {
+        setPeople(people.slice(1));
+        setSkipped([...skipped, ...people.slice(0, 1)]);
+
+        setSkipAnimation(false);
+        handleSwipeSkipCanceled();
+    }, [people, skipped, handleSwipeSkipCanceled]);
+
+    const handleLikeAnimationEnd = useCallback(() => {
+        setPeople(people.slice(1));
+        setLiked([...liked, ...people.slice(0, 1)]);
+
+        setLikeAnimation(false);
+        handleSwipeLikeCanceled();
+    }, [people, liked, handleSwipeLikeCanceled]);
+
     // 仕分け用コントローラーに渡すイベントハンドラー
     const handleSkip = useCallback(() => {
         setSkipAnimation(true);
@@ -236,11 +240,9 @@ export function CardUI() {
         setLikeAnimation(true);
     };
 
-    const empty = people.length === 0;
-
     return (
         <Box className={classes.wrapper}>
-            {empty ? (
+            {people.length === 0? (
                 <Grid
                     container
                     justify="center"
@@ -261,7 +263,7 @@ export function CardUI() {
                 <>
                     <Box className={classes.cards}>
                         {people.map((person, i) => {
-                            const props = { person, key: person.id };
+                            const props = { person, key: person.login.uuid };
                             if (i === 0) { // 先頭のカードにはアニメーション用のCSSとイベントハンドラーを追加する
                                 // ボタンによる仕分け用
                                 props.className = clsx({
@@ -270,8 +272,6 @@ export function CardUI() {
                                     [classes.skipLabel]: skipLabel,
                                     [classes.likeLabel]: likeLabel,
                                 });
-                                props.onSkipAnimationEnd = handleSkipAnimationEnd;
-                                props.onLikeAnimationEnd = handleLikeAnimationEnd;
 
                                 // スワイプによる仕分け用
                                 props.swipable = true;
@@ -279,6 +279,10 @@ export function CardUI() {
                                 props.onSwipeLike = handleSwipeLike;
                                 props.onSwipeSkipCanceled = handleSwipeSkipCanceled;
                                 props.onSwipeLikeCanceled = handleSwipeLikeCanceled;
+
+                                // 仕分け用（ボタンとスワイプの両方）
+                                props.onSkipAnimationEnd = handleSkipAnimationEnd;
+                                props.onLikeAnimationEnd = handleLikeAnimationEnd;
                             }
                         
                             return (
@@ -366,9 +370,9 @@ function PersonCard(props) {
                     } else {
                         onSwipeLikeCanceled()
                     }
-                } else if (motionX <= -THRESHOULD) {
+                } else if (motionX < -THRESHOULD) {
                     onSkipAnimationEnd();
-                } else if (motionX >= THRESHOULD) {
+                } else if (motionX > THRESHOULD) {
                     onLikeAnimationEnd();
                 }
             }
@@ -385,16 +389,16 @@ function PersonCard(props) {
         >
             <Card >
                 <CardMedia
-                    image={person.img}
-                    title={person.name}
+                    image={person.picture.large}
+                    title={person.name.first}
                     className={classes.image}
                 />
                 <CardContent className={classes.cardContent}>
                     <Typography variant="h6" component="span" >
-                        {person.name}
+                        {person.name.first}
                     </Typography>
                     <Typography color="textSecondary" component="span">
-                        {person.age}
+                        {person.dob.age}
                     </Typography>
                 </CardContent>
             </Card>
