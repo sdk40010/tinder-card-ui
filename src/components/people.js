@@ -55,66 +55,9 @@
 //     }
 // ];
 
-export const people = [
-    {
-        id: 8,
-        name: 'Sara',
-        age: 18,
-        img: "http://i40.tinypic.com/ofxe21.jpg"
-    },
-    {
-        id: 8,
-        name: 'Sara',
-        age: 18,
-        img: "http://i40.tinypic.com/ofxe21.jpg"
-    },
-    {
-        id: 8,
-        name: 'Sara',
-        age: 18,
-        img: "http://i40.tinypic.com/ofxe21.jpg"
-    },
-    {
-        id: 8,
-        name: 'Sara',
-        age: 18,
-        img: "http://i40.tinypic.com/ofxe21.jpg"
-    },
-    {
-        id: 8,
-        name: 'Sara',
-        age: 18,
-        img: "http://i40.tinypic.com/ofxe21.jpg"
-    },
-    {
-        id: 8,
-        name: 'Sara',
-        age: 18,
-        img: "http://i40.tinypic.com/ofxe21.jpg"
-    },
-    {
-        id: 8,
-        name: 'Sara',
-        age: 18,
-        img: "http://i40.tinypic.com/ofxe21.jpg"
-    },
-    {
-        id: 8,
-        name: 'Sara',
-        age: 18,
-        img: "http://i40.tinypic.com/ofxe21.jpg"
-    },
-    {
-        id: 8,
-        name: 'Sara',
-        age: 18,
-        img: "http://i40.tinypic.com/ofxe21.jpg"
-    },
-    {
-        id: 8,
-        name: 'Sara',
-        age: 18,
-        img: "http://i40.tinypic.com/ofxe21.jpg"
-    },
-    
-];
+export const people = [...Array(10)].map((_, i) => ({
+    id: i,
+    name: 'Sara',
+    age: 18,
+    img: "http://i40.tinypic.com/ofxe21.jpg"
+}));

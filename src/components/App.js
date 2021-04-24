@@ -3,7 +3,6 @@ import { CardUI } from "./CardUI";
 import { makeStyles } from "@material-ui/core/styles"
 import {
     Container,
-    Box,
     CssBaseline,
 } from "@material-ui/core";
 
