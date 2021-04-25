@@ -82,21 +82,21 @@ export function PersonCard(props) {
         swipable = false,
         onSwipe = () => {},
         onSwipeEnd = () => {},
+        transformArgs,
+        swipeProps,
     } = props;
 
     const classes = useStyles();
 
     // スワイプ量によって変化する値
     const x = useMotionValue(0);
-    const rotate = useTransform(x, [-200, 200], [-45, 45]);
-    const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
+    const rotate = useTransform(x, ...transformArgs.rotate);
+    const opacity = useTransform(x, ...transformArgs.opacity);
 
     const controls = useAnimation();
 
     const motionProps = swipable
         ? {
-            drag: "x",
-            dragConstraints: { left: -200, right: 200 },
             animate: controls,
             style: {
                 x,
@@ -108,8 +108,8 @@ export function PersonCard(props) {
             },
             onDragEnd: () => {
                 onSwipeEnd(x.get(), controls);
-            }
-            
+            },
+            ...swipeProps,
         }
         : {};
 

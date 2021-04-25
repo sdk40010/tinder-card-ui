@@ -16,6 +16,14 @@ export const CARD_TOP_DIFF = "10px";
 
 // カードアニメーション用
 const OFF_SCREEN = "400px";
+const variants = {
+    skip: {
+
+    },
+    like: {
+
+    },
+}
 const skipLabel = {
     "&::before": {
         transform: "rotateZ(35deg)",
@@ -116,12 +124,16 @@ export function CardUI({peopleData}) {
         skipLabel,
         likeLabel,
 
+        // ボタンによる仕分け用
         handleAnimationEnd,
         handleSkip,
         handleLike,
 
+        // スワイプによる仕分け用
         handleSwipe,
         handleSwipeEnd,
+        transformArgs,
+        swipeProps,
     } = useCardUI(peopleData);
 
 
@@ -148,21 +160,30 @@ export function CardUI({peopleData}) {
                 <>
                     <Box className={classes.cards}>
                         {people.map((person, i) => {
-                            const props = { person, key: person.login.uuid };
+                            let props = {
+                                person,
+                                key: person.login.uuid,
+                                transformArgs,
+                            };
                             if (i === 0) { // 先頭のカードにはアニメーション用のCSSとイベントハンドラーを追加する
-                                // ボタンによる仕分け用
-                                props.className = clsx({
-                                    [classes.skipAnimation]: skipAnimation,
-                                    [classes.likeAnimation]: likeAnimation,
-                                    [classes.skipLabel]: skipLabel,
-                                    [classes.likeLabel]: likeLabel,
-                                });
-                                props.onAnimationEnd = handleAnimationEnd;
+                                props = {
+                                    ...props,
+                                    // ボタンによる仕分け用
+                                    className: clsx({
+                                        [classes.skipAnimation]: skipAnimation,
+                                        [classes.likeAnimation]: likeAnimation,
+                                        [classes.skipLabel]: skipLabel,
+                                        [classes.likeLabel]: likeLabel,
+                                    }),
+                                    onAnimationEnd: handleAnimationEnd,
 
-                                // スワイプによる仕分け用
-                                props.swipable = true;
-                                props.onSwipe = handleSwipe;
-                                props.onSwipeEnd = handleSwipeEnd;
+                                    // スワイプによる仕分け用
+                                    swipable: true,
+                                    onSwipe: handleSwipe,
+                                    onSwipeEnd: handleSwipeEnd,
+                                    transformArgs,
+                                    swipeProps,
+                                };
                             }
                         
                             return (
@@ -183,6 +204,11 @@ export function CardUI({peopleData}) {
     );
 }
 
+/**
+ * カードUI用のフック
+ * 
+ * @param {array} peopleData 人物の配列
+ */
 function useCardUI(peopleData) {
     // 仕分け用の配列
     const [people, setPeople] = useState(peopleData);
@@ -261,7 +287,17 @@ function useCardUI(peopleData) {
     };
 }
 
+/**
+ * スワイプ操作用のフック
+ * 
+ * @param {Function} onSwipeSkipEnd スワイプによるスキップ終了時に呼び出すイベントハンドラー
+ * @param {Function} onSwipeLikeEnd スワイプによるいいね終了時に呼び出すイベントハンドラー
+ * @param {Function} setSkipLabel スキップラベルフラグの状態を変更する関数
+ * @param {Function} setLikeLabel いいねラベルフラグの状態を変更する関数
+ * @returns 
+ */
 function useSwipe(onSwipeSkipEnd, onSwipeLikeEnd, setSkipLabel, setLikeLabel) {
+    // スワイプによる仕分け用のイベントハンドラー
    const handleSwipe = useCallback((x) => {
         if (x < 0) {
             setLikeLabel(false);
@@ -293,5 +329,13 @@ function useSwipe(onSwipeSkipEnd, onSwipeLikeEnd, setSkipLabel, setLikeLabel) {
     return {
         handleSwipe,
         handleSwipeEnd,
+        transformArgs: { // PersonCard内でuseTransform関数の引数に渡す値
+            rotate: [[-200, 200], [-45, 45]],
+            opacity: [[-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]],
+        },
+        swipeProps: {
+            drag: "x",
+            dragConstraints: { left: -200, right: 200 },
+        }
     };
 }
