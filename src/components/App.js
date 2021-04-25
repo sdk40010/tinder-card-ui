@@ -24,7 +24,7 @@ function App() {
                 errors={[personAPI.error]}
                 resources={[personAPI.data]}
             >
-                <CardUI people={personAPI.data} />
+                <CardUI peopleData={personAPI.data} />
             </MainContainer>
             
         </>

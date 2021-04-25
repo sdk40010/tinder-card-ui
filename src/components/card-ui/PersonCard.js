@@ -69,38 +69,22 @@ const useStyles = makeStyles((theme) => ({
  * 
  * @param {Object} props.person 人物データ
  * @param {string} props.className アニメーション用CSSのクラス名
- * @param {Function} props.onSkipAnimationEnd スキップアニメーション終了時に呼び出すイベントハンドラー
- * @param {Function} props.onLikeAnimationEnd　いいねニメーション終了時に呼び出すイベントハンドラー
+ * @param {Function} props.onAnimationEnd アニメーション終了時に呼び出すイベントハンドラー
  * @param {boolean} props.swipable スワイプが可能かどうか
- * @param {Function} props.onSwipeSkip スワイプでスキップするときに呼び出すイベントハンドラー
- * @param {Function} props.onSwipeLike　スワイプでいいねするときに呼び出すイベントハンドラー
- * @param {Function} props.onSwipeSkipCanceled スワイプによるスキップが中断されたときに呼び出すイベントハンドラー
- * @param {Function} props.onSwipeLikeCanceled スワイプによるいいねが中断されたときに呼び出すイベントハンドラー
+ * @param {Function} props.onSwipe スワイプ時に呼び出すイベントハンドラー
+ * @param {Function} props.onSwipeEnd　スワイプ終了時呼び出すイベントハンドラー
  */
 export function PersonCard(props) {
     const {
         person,
         className,
-        onSkipAnimationEnd = () => {},
-        onLikeAnimationEnd = () => {},
+        onAnimationEnd = () => {},
         swipable = false,
-        onSwipeSkip = () => {},
-        onSwipeLike = () => {},
-        onSwipeSkipCanceled = () => {},
-        onSwipeLikeCanceled = () => {},
+        onSwipe = () => {},
+        onSwipeEnd = () => {},
     } = props;
 
     const classes = useStyles();
-
-    const handleAnimationEnd = (event) => {
-        const animationName = event.animationName;
-
-        if (animationName.includes("skip")) {
-            onSkipAnimationEnd();
-        } else if (animationName.includes("like")) {
-            onLikeAnimationEnd();
-        }
-    }
 
     // スワイプ量によって変化する値
     const x = useMotionValue(0);
@@ -109,7 +93,6 @@ export function PersonCard(props) {
 
     const controls = useAnimation();
 
-    // スワイプの設定
     const motionProps = swipable
         ? {
             drag: "x",
@@ -121,31 +104,10 @@ export function PersonCard(props) {
                 opacity,
             },
             onDrag: () => {
-                const motionX = x.get();
-                // 人物カードにラベルを付ける
-                if (motionX < 0) {
-                    onSwipeSkip();
-                } else {
-                    onSwipeLike();
-                }
+                onSwipe(x.get());
             },
             onDragEnd: () => {
-                const THRESHOULD = 150; // 閾値
-                const motionX = x.get();
-
-                if (Math.abs(motionX) <= THRESHOULD) { // スワイプ量の絶対値が閾値以下のときは仕分けしない
-                    controls.start({ x: 0 });
-                    // 人物カードのラベルをはずす
-                    if (motionX < 0) {
-                        onSwipeSkipCanceled();
-                    } else {
-                        onSwipeLikeCanceled()
-                    }
-                } else if (motionX < -THRESHOULD) {
-                    onSkipAnimationEnd();
-                } else if (motionX > THRESHOULD) {
-                    onLikeAnimationEnd();
-                }
+                onSwipeEnd(x.get(), controls);
             }
             
         }
@@ -164,7 +126,7 @@ export function PersonCard(props) {
         <motion.div
             {...motionProps}
             className={clsx(classes.card, className)}
-            onAnimationEnd={handleAnimationEnd}
+            onAnimationEnd={onAnimationEnd}
             
         >
             <Card >
