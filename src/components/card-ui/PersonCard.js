@@ -10,7 +10,7 @@ import {
     Typography,
     Button,
 } from "@material-ui/core";
-import { motion, useMotionValue, useTransform, useAnimation } from "framer-motion";
+import { motion, useMotionValue, useTransform } from "framer-motion";
 
 const useStyles = makeStyles((theme) => ({
     card: {
@@ -36,7 +36,7 @@ const useStyles = makeStyles((theme) => ({
             zIndex: 2,
             transform: "scale(0.7)",
         },
-        "&::before": { // アニメーションでラベルを付与するために必要
+        "&::before": { // ラベルを付与するために必要
             position: "absolute",
             top: 0,
             left: 0,
@@ -56,9 +56,6 @@ const useStyles = makeStyles((theme) => ({
             marginRight: theme.spacing(1)
         }
     },
-    swipableCard: {
-        overflow: "initial"
-    },
     detailButton: {
         marginLeft: "auto",
     }
@@ -68,7 +65,9 @@ const useStyles = makeStyles((theme) => ({
  * 人物カード
  * 
  * @param {Object} props.person 人物データ
- * @param {string} props.className アニメーション用CSSのクラス名
+ * @param {Object} props.className カードにラベルをつけるCSSのクラス名
+ * @param {Object} props.animationProps アニメーションの設定
+ * @param {AnimationControls} props.animation アニメーションの制御を行うオブジェクト
  * @param {Function} props.onAnimationEnd アニメーション終了時に呼び出すイベントハンドラー
  * @param {boolean} props.swipable スワイプが可能かどうか
  * @param {Function} props.onSwipe スワイプ時に呼び出すイベントハンドラー
@@ -78,6 +77,8 @@ export function PersonCard(props) {
     const {
         person,
         className,
+        animationProps,
+        animation,
         onAnimationEnd = () => {},
         swipable = false,
         onSwipe = () => {},
@@ -93,11 +94,11 @@ export function PersonCard(props) {
     const rotate = useTransform(x, ...transformArgs.rotate);
     const opacity = useTransform(x, ...transformArgs.opacity);
 
-    const controls = useAnimation();
-
+    // アニメーションとスワイプの設定
     const motionProps = swipable
         ? {
-            animate: controls,
+            animate: animation,
+            ...animationProps,
             style: {
                 x,
                 rotate,
@@ -107,7 +108,7 @@ export function PersonCard(props) {
                 onSwipe(x.get());
             },
             onDragEnd: () => {
-                onSwipeEnd(x.get(), controls);
+                onSwipeEnd(x.get(), animation);
             },
             ...swipeProps,
         }
@@ -126,8 +127,7 @@ export function PersonCard(props) {
         <motion.div
             {...motionProps}
             className={clsx(classes.card, className)}
-            onAnimationEnd={onAnimationEnd}
-            
+            onAnimationComplete={onAnimationEnd}
         >
             <Card >
                 <CardMedia

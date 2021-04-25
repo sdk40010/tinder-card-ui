@@ -8,6 +8,7 @@ import {
     Grid,
     Typography,
 } from "@material-ui/core";
+import { useAnimation } from "framer-motion";
 
 // カードラッパー用
 const CARD_MAX_WIDTH = "500px";
@@ -15,26 +16,37 @@ const CARD_CONTENT_HEIGHT = "72px"
 export const CARD_TOP_DIFF = "10px";
 
 // カードアニメーション用
-const OFF_SCREEN = "400px";
-const variants = {
-    skip: {
-
+const OFF_SCREEN = 400;
+const animationProps = {
+    variants: {
+        skip: {
+            scale: [1, 1.05, 1.05],
+            rotate: [0, 0, -45],
+            x: [0, 0, -OFF_SCREEN],
+            opacity: [1, 1, 0],
+        },
+        like: {
+            scale: [1, 1.05, 1.05],
+            rotate: [0, 0, 45],
+            x: [0, 0, OFF_SCREEN],
+            opacity: [1, 1, 0],
+        },
+        initial: {},
     },
-    like: {
-
-    },
-}
-const skipLabel = {
-    "&::before": {
-        transform: "rotateZ(35deg)",
-        background: "url(https://i.imgur.com/XqQZ4KR.png) no-repeat center 10px"
+    transition: {
+        duration: .4,
+        ease: "linear",
     }
 };
-const likeLabel = {
-    "&::before": {
-        transform: "rotateZ(-35deg)",
-        background: "url(https://i.imgur.com/Zkwj970.png) no-repeat center 10px",
-    }
+
+// スワイプ操作用
+const transformArgs = { // PersonCard内でuseTransform関数の引数に渡す値
+    rotate: [[-200, 200], [-45, 45]],
+    opacity: [[-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]],
+};
+const swipeProps = {
+    drag: "x",
+    dragConstraints: { left: -200, right: 200 },
 };
 
 const useStyles = makeStyles((theme) => ({
@@ -57,52 +69,18 @@ const useStyles = makeStyles((theme) => ({
         textAlign: "center"
     },
 
-    // アニメーション
-    skipAnimation: {
-        animation: "$skip .4s linear",
-        animationFillMode: "both",
-        ...skipLabel,
+    // ラベル
+    skipLabel: {
+        "&::before": {
+            transform: "rotateZ(35deg)",
+            background: "url(https://i.imgur.com/XqQZ4KR.png) no-repeat center 10px"
+        }
     },
-    likeAnimation: {
-        animation: "$like .4s linear",
-        animationFillMode: "both",
-        ...likeLabel,
-    },
-    skipLabel,
-    likeLabel,
-    "@keyframes skip": {
-        "0%": {
-            transform: "scale(1) rotateZ(360deg)",
-            right: 0,
-            opacity: 1,
-          },
-          "30%": { 
-            transform: "scale(1.05) rotateZ(360deg)",
-            right: 0,
-            opacity: 1,
-          },
-          "100%": {
-            transform: "rotateZ(315deg)",
-            right: OFF_SCREEN,
-            opacity: 0,
-          }
-    },
-    "@keyframes like": {
-        "0%": {
-            transform: "scale(1) rotateZ(0deg)",
-            left: 0,
-            opacity: 1,
-          },
-          "30%": { 
-            transform: "scale(1.05) rotateZ(0deg)",
-            left: 0,
-            opacity: 1,
-          },
-          "100%": {
-            transform: "rotateZ(45deg)",
-            left: OFF_SCREEN,
-            opacity: 0,
-          }
+    likeLabel: {
+        "&::before": {
+            transform: "rotateZ(-35deg)",
+            background: "url(https://i.imgur.com/Zkwj970.png) no-repeat center 10px",
+        }
     },
 }));
 
@@ -115,12 +93,13 @@ export function CardUI({peopleData}) {
     const classes = useStyles();
 
     const {
+        // 仕分け用の配列
         people,
         liked,
         skipped,
 
-        skipAnimation,
-        likeAnimation,
+        // アニメーション用
+        animation,
         skipLabel,
         likeLabel,
 
@@ -132,8 +111,6 @@ export function CardUI({peopleData}) {
         // スワイプによる仕分け用
         handleSwipe,
         handleSwipeEnd,
-        transformArgs,
-        swipeProps,
     } = useCardUI(peopleData);
 
 
@@ -165,23 +142,25 @@ export function CardUI({peopleData}) {
                                 key: person.login.uuid,
                                 transformArgs,
                             };
+
                             if (i === 0) { // 先頭のカードにはアニメーション用のCSSとイベントハンドラーを追加する
                                 props = {
                                     ...props,
-                                    // ボタンによる仕分け用
+                                    // 仕分け用（ボタンとスワイプ両方）
                                     className: clsx({
-                                        [classes.skipAnimation]: skipAnimation,
-                                        [classes.likeAnimation]: likeAnimation,
                                         [classes.skipLabel]: skipLabel,
                                         [classes.likeLabel]: likeLabel,
                                     }),
+                                    animation,
+
+                                    // ボタンによる仕分け用
+                                    animationProps,
                                     onAnimationEnd: handleAnimationEnd,
 
                                     // スワイプによる仕分け用
                                     swipable: true,
                                     onSwipe: handleSwipe,
                                     onSwipeEnd: handleSwipeEnd,
-                                    transformArgs,
                                     swipeProps,
                                 };
                             }
@@ -215,9 +194,8 @@ function useCardUI(peopleData) {
     const [liked, setLiked] = useState([]);
     const [skipped, setSkipped] = useState([]);
 
-    // アニメーション用フラグ
-    const [skipAnimation, setSkipAnimation] = useState(false);
-    const [likeAnimation, setLikeAnimation] = useState(false);
+    // アニメーション用
+    const animation = useAnimation();
 
     // 人物カードにラベルを付与するためのフラグ
     const [skipLabel, setSkipLabel] = useState(false);
@@ -228,7 +206,6 @@ function useCardUI(peopleData) {
         setPeople(people.slice(1));
         setSkipped([...skipped, ...people.slice(0, 1)]);
 
-        setSkipAnimation(false);
         setSkipLabel(false);
     }, [people, skipped]);
 
@@ -236,34 +213,27 @@ function useCardUI(peopleData) {
         setPeople(people.slice(1));
         setLiked([...liked, ...people.slice(0, 1)]);
 
-        setLikeAnimation(false);
         setLikeLabel(false);
     }, [people, liked]);
 
-    const handleAnimationEnd = useCallback((event) => {
-        const animationName = event.animationName;
-        console.log(animationName);
-
-        if (animationName.includes("skip")) {
+    const handleAnimationEnd = useCallback((animationName) => {
+        if (animationName === "skip") {
             handleSkipAnimationEnd();
-        } else if (animationName.includes("like")) {
+        } else if (animationName === "like") {
             handleLikeAnimationEnd();
         }
-    }, [handleSkipAnimationEnd, handleLikeAnimationEnd])
+    }, [handleSkipAnimationEnd, handleLikeAnimationEnd]);
 
     // 仕分け用コントローラーに渡すイベントハンドラー
     const handleSkip = useCallback(() => {
-        setSkipAnimation(true);
-    }, []);
+        setSkipLabel(true);
+        animation.start("skip");
+    }, [animation]);
 
     const handleLike = useCallback(() => {
-        setLikeAnimation(true);
-    }, []);
-
-    // TODO framer-motionでアニメーションを設定する
-    const animationProps = {
-
-    };
+        setLikeLabel(true);
+        animation.start("like");
+    }, [animation]);
 
     const swipe = useSwipe(
         handleSkipAnimationEnd,
@@ -276,8 +246,7 @@ function useCardUI(peopleData) {
         people,
         liked,
         skipped,
-        skipAnimation,
-        likeAnimation,
+        animation,
         skipLabel,
         likeLabel,
         handleAnimationEnd,
@@ -329,13 +298,5 @@ function useSwipe(onSwipeSkipEnd, onSwipeLikeEnd, setSkipLabel, setLikeLabel) {
     return {
         handleSwipe,
         handleSwipeEnd,
-        transformArgs: { // PersonCard内でuseTransform関数の引数に渡す値
-            rotate: [[-200, 200], [-45, 45]],
-            opacity: [[-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]],
-        },
-        swipeProps: {
-            drag: "x",
-            dragConstraints: { left: -200, right: 200 },
-        }
     };
 }
