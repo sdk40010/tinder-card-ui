@@ -128,8 +128,9 @@ export function PersonCard(props) {
             {...motionProps}
             className={clsx(classes.card, className)}
             onAnimationComplete={onAnimationEnd}
+            data-testid={"card"}
         >
-            <Card >
+            <Card>
                 <CardMedia
                     image={person.picture.large}
                     title={person.name.first}
@@ -142,7 +143,12 @@ export function PersonCard(props) {
                     <Typography color="textSecondary" component="span">
                         {person.dob.age}
                     </Typography>
-                    <Button color="primary" className={classes.detailButton} onClick={handleOpen}>
+                    <Button
+                        color="primary"
+                        className={classes.detailButton}
+                        onClick={handleOpen}
+                        data-testid="read-more-button"
+                    >
                         詳細を見る
                     </Button>
                 </CardContent>

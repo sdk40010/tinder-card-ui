@@ -50,7 +50,6 @@ const swipeProps = {
 };
 
 const useStyles = makeStyles((theme) => ({
-    // ラッパー
     wrapper: {
         height: "100%"
     },
@@ -68,8 +67,11 @@ const useStyles = makeStyles((theme) => ({
         minHeight: "100%",
         textAlign: "center"
     },
-
-    // ラベル
+    result: {
+        "& > span:not(:last-child)": {
+            marginRight: theme.spacing(1),
+        }
+    },
     skipLabel: {
         "&::before": {
             transform: "rotateZ(35deg)",
@@ -123,14 +125,28 @@ export function CardUI({peopleData}) {
                     alignItems="center"
                     className={classes.doneMessage}
                 >
-                    <Grid item>
+                    <Grid item className={classes.result}>
                         <Typography>仕分けが完了しました</Typography>
-                        <Typography variant="body2" color="textSecondary">
-                            {[
-                                `スキップ ${skipped.length}`,
-                                `いいね ${liked.length}`,
-                            ].join("　")}
-                        </Typography>
+                        {([
+                            {
+                                content: `スキップ ${skipped.length}`,
+                                testId: "skip-count",
+                            },
+                            {
+                                content: `いいね ${liked.length}`,
+                                testId: "like-count",
+                            }
+                        ]).map((text, i) => (
+                            <Typography
+                                variant="body2"
+                                color="textSecondary"
+                                component="span"
+                                key={i}
+                                data-testid={text.testId}
+                            >
+                                {text.content}
+                            </Typography>
+                        ))}
                     </Grid>
                 </Grid>
             ) : (

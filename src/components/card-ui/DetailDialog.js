@@ -31,7 +31,7 @@ export function DetailDialog(props) {
     const classes = useStyles();
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth data-testid="dialog">
             <Card>
                 <CardHeader
                     avatar={<Avatar src={person.picture.thumbnail} alt={person.name.first} />}

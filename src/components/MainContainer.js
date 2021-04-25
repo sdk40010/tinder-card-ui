@@ -86,7 +86,7 @@ export function MainContainer(props) {
             ) : 
             loading ? (
                 <Box className={classes.progressWrapper}>
-                    <CircularProgress color="secondary" />
+                    <CircularProgress color="secondary" data-testid="progress" />
                 </Box>
             ) : (
                 children

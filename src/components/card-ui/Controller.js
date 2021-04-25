@@ -29,27 +29,30 @@ const useStyles = makeStyles((theme) => ({
 export function Controller({onSkip, onLike}) {
     const classes = useStyles();
 
-    const icons = [
+    const buttons = [
         {
-            component: <SkipIcon fontSize="large" color="error" />,
-            onClick: onSkip
+            icon: <SkipIcon fontSize="large" color="error" />,
+            onClick: onSkip,
+            testId: "skip-button",
         },
         {
-            component: <LikeIcon fontSize="large" color="primary" />,
-            onClick: onLike
+            icon: <LikeIcon fontSize="large" color="primary" />,
+            onClick: onLike,
+            testId: "like-button",
         }
     ];
 
     return (
         <Grid container justify="center">
             <Grid item className={classes.controller}>
-                {icons.map((icon, i) => (
+                {buttons.map((button, i) => (
                     <IconButton
                         className={classes.button}
-                        onClick={icon.onClick}  
+                        onClick={button.onClick}  
                         key={i}
+                        data-testid={button.testId}
                     >
-                        {icon.component}
+                        {button.icon}
                     </IconButton>
                 ))}
             </Grid>
