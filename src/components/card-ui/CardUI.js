@@ -279,7 +279,6 @@ function useCardUI(peopleData) {
  * @param {Function} onSwipeLikeEnd スワイプによるいいね終了時に呼び出すイベントハンドラー
  * @param {Function} setSkipLabel スキップラベルフラグの状態を変更する関数
  * @param {Function} setLikeLabel いいねラベルフラグの状態を変更する関数
- * @returns 
  */
 function useSwipe(onSwipeSkipEnd, onSwipeLikeEnd, setSkipLabel, setLikeLabel) {
     // スワイプによる仕分け用のイベントハンドラー
