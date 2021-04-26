@@ -47,21 +47,17 @@ export　function usePersonAPI() {
  * @throws {Error} エラーレスポンス
  */
 async function apiCall(url, method) {
-    try {
-        const res = await fetch(url, {
-            method,
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
+    const res = await fetch(url, {
+        method,
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
 
-        if (res.ok) {
-            return await res.json();
-        } else {
-            handleError(res);
-        }
-    } catch (error) {
-        throw error;
+    if (res.ok) {
+        return await res.json();
+    } else {
+        handleError(res);
     }
 }
 

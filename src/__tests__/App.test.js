@@ -62,5 +62,15 @@ test("詳細画面を表示できる", async () => {
     fireEvent.click(readMoreButtons[0]);
 
     await waitFor(() => screen.getByTestId("dialog"));
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByTestId("dialog")).toBeInTheDocument();
+});
+
+test("エラー画面を表示できる", async () => {
+    fetchMock.resetMocks();
+    fetchMock.mockRejectOnce(new Error());
+
+    render(<App />);
+
+    const error = await screen.findByTestId("error");
+    expect(error).toBeInTheDocument();
 });

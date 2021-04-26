@@ -75,7 +75,7 @@ export function MainContainer(props) {
             {...rest}
         >
             {error ? (
-                <Card>
+                <Card data-testid="error">
                     <CardHeader
                         title={<Typography variant="h6" component="h1">エラー</Typography>}
                     />
