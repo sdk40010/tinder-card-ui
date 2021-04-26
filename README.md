@@ -1,5 +1,8 @@
 # Tinder風カードUI
 
+## Demo
+[https://tinder-card-ui.netlify.app/](https://tinder-card-ui.netlify.app/)
+
 ## Dependencies
 - Node.js 14.x
 - React 17.x
@@ -28,4 +31,9 @@
 
     スワイプ操作を実装したことがなかったので、ライブラリを探したり、実装方法を考えたりするのに苦労しました。
 
+- レイアウト
+
+    カードを重ねて表示するために絶対配置している関係で、そのままでは親要素の高さが0になってしまうので、レスポンシブなレイアウトにするのに苦労しました。
+
+- 
 
