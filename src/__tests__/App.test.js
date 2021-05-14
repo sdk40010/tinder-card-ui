@@ -48,50 +48,50 @@ test("ボタンで人物カードを仕分けできる", async () => {
     expect(screen.getByTestId("like-count")).toHaveTextContent(likeCount);
 }, 10000);
 
-test("スワイプで人物カードを仕分けできる", async () => {
-    render(<App />);
+// test("スワイプで人物カードを仕分けできる", async () => {
+//     render(<App />);
 
-    const skipCount = Math.floor(Math.random() * config.RESULT_COUNT);
-    const likeCount = config.RESULT_COUNT - skipCount;
+//     const skipCount = Math.floor(Math.random() * config.RESULT_COUNT);
+//     const likeCount = config.RESULT_COUNT - skipCount;
 
-    for (let i = 0; i < config.RESULT_COUNT; i++) {
-        const card = (await screen.findAllByTestId("card"))[0];
+//     for (let i = 0; i < config.RESULT_COUNT; i++) {
+//         const card = (await screen.findAllByTestId("card"))[0];
 
-        const swipe = (element, start, end) => {
-            fireEvent.touchStart(element, {
-                clientX: start[0],
-                clientY: start[1],
-            });
-            fireEvent.touchMove(element, {
-                screenX: end[0],
-                screenY: end[1]
-            });
-            fireEvent.touchEnd(element, {
-                screenX: end[0],
-                screenY: end[1]
-            });
-        }
+//         const swipe = (element, start, end) => {
+//             fireEvent.touchStart(element, {
+//                 clientX: start[0],
+//                 clientY: start[1],
+//             });
+//             fireEvent.touchMove(element, {
+//                 screenX: end[0],
+//                 screenY: end[1]
+//             });
+//             fireEvent.touchEnd(element, {
+//                 screenX: end[0],
+//                 screenY: end[1]
+//             });
+//         }
 
-        if (i < skipCount) {
-            swipe(card, [0, 0], [-400, 0]);
-        } else {
-            swipe(card, [0, 0], [400, 0]);
-        }
+//         if (i < skipCount) {
+//             swipe(card, [0, 0], [-400, 0]);
+//         } else {
+//             swipe(card, [0, 0], [400, 0]);
+//         }
 
-        // カードの枚数が減っているのを確認できるまで待機する
-        await waitFor(() => {
-            const cards = screen.queryAllByTestId("card");
-            if (cards.length === config.RESULT_COUNT - i) {
-                throw new Error();
-            }
-        });
-    }
+//         // カードの枚数が減っているのを確認できるまで待機する
+//         await waitFor(() => {
+//             const cards = screen.queryAllByTestId("card");
+//             if (cards.length === config.RESULT_COUNT - i) {
+//                 throw new Error();
+//             }
+//         });
+//     }
 
-    await waitFor(() => screen.getByTestId("skip-count"));
+//     await waitFor(() => screen.getByTestId("skip-count"));
 
-    expect(screen.getByTestId("skip-count")).toHaveTextContent(skipCount);
-    expect(screen.getByTestId("like-count")).toHaveTextContent(likeCount);
-}, 10000);
+//     expect(screen.getByTestId("skip-count")).toHaveTextContent(skipCount);
+//     expect(screen.getByTestId("like-count")).toHaveTextContent(likeCount);
+// }, 10000);
 
 test("詳細画面を表示できる", async () => {
     render(<App />);
